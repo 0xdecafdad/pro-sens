@@ -3,19 +3,19 @@
 # Description:	Get all listed pro edpi's for VALORANT, Apex Legends, and CS:GO from prosettings.net
 
 from bs4 import BeautifulSoup as bs
+from urllib.request import Request, urlopen
 
 # Input:	url
 # Output: 	bs4 object
 def convert_url(url):
-	# urlopen makes a request to webpage at url
-	# result is an object which is saved as url_object
-	url_object = urlopen(url)
+	# Make custom request to webpage
+	req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+	
+	# Save webpage
+	webpage = urlopen(req).read()	
 
-	# the raw html from the webpage is saved in html_doc
-	html_doc = url_object.read()
-
-	# converts raw html to BeautifulSoup object 'soup'
-	soup = bs(html_doc, "html.parser")
+	# Convert webpage to bs object
+	soup = bs(webpage, 'html.parser')
 
 	return soup
 # end convert_url()
@@ -30,9 +30,8 @@ def calc_average(ints, i, size):
 		return ints[i] + calc_average(ints, i+1, size)
 # end calc_average
 
-# Finds average edpi of all listed pro players for {game}
-# Game is a string, either "valorant", "apex", or "csgo"
-def get_edpi(game):
+# Build url to access appropriate webpage based on game
+def build_url(game):
 	# Gather components to craft url of webpage with approriate edpi list
 	pre = 'https://prosettings.net/'
 	game_name = ''
@@ -50,5 +49,24 @@ def get_edpi(game):
 	post = '-pro-settings-gear-list/'
 	url = '{pre}{game_name}{post}'.format(pre=pre, game_name=game_name, post=post)
 
-	print(url)
+	return url
+# end build_url
+
+# Finds average edpi of all listed pro players for {game}
+# Game is a string, either "valorant", "apex", or "csgo"
+def get_edpi(game):
+	# Get url for correct webpage
+	url = build_url(game)
+
+	# Convert url to bs object
+	soup = convert_url(url)
+
+	# Get list of all edpis from webpage
+	# PROBLEM HERE!!!
+	# Does not return anything
+	edpis = soup.find_all('td', {'class' : ' numdata integer  column-edpi'})
+
+	# Print all edpis (debugging)
+	for edpi in edpis:
+		print(edpi)
 # end get_edpi()
